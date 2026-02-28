@@ -1,0 +1,37 @@
+# Config with real API keys — NEVER commit this
+python/config/config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Trained models (can be large)
+python/models/
+
+# Logs
+*.log
+
+# Rust build artifacts
+rust/target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# dotenv
+.env

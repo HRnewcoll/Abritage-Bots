@@ -1,0 +1,46 @@
+[package]
+name = "arb-bot"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance cross-exchange crypto arbitrage bot"
+authors = ["Abritage-Bots"]
+
+[[bin]]
+name = "arb-bot"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# JSON
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Config
+config = "0.14"
+serde_yaml = "0.9"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Async traits
+async-trait = "0.1"
+
+# Time
+chrono = "0.4"
+
+# Decimal arithmetic (avoid float rounding errors)
+rust_decimal = { version = "1", features = ["serde-with-str"] }
+rust_decimal_macros = "1"
