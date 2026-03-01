@@ -19,3 +19,6 @@ PyYAML>=6.0.1
 
 # Logging & utilities
 colorlog>=6.8.0
+
+# Terminal UI (simulator dashboard, rich progress bars, backtest tables)
+rich>=13.7.0

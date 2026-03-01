@@ -1,8 +1,117 @@
 # Abritage-Bots 🤖💹
 
-A collection of **cryptocurrency arbitrage bots** written in **Python** and **Rust**, including two **AI/ML-powered** strategies.
+A collection of **cryptocurrency arbitrage bots** written in **Python** and **Rust**, including two **AI/ML-powered** strategies — plus a full **paper-trading simulator** that uses real historical market prices so you can test everything without spending a single dollar.
 
 > ⚠️ **All bots run in `dry_run: true` mode by default — no real orders are placed until you explicitly disable it and provide live API credentials.**
+
+---
+
+## ✨ What's Inside
+
+| Component | What it does |
+|-----------|-------------|
+| 🔄 **Cross-Exchange Bot** | Buys low on one exchange, sells high on another |
+| 🔺 **Triangular Arb Bot** | Exploits 3-currency cycles on a single exchange |
+| 🤖 **AI Spread Predictor** | Gradient Boosting model predicts the next price spread |
+| 🧠 **AI RL Agent** | Q-learning agent that learns optimal entry/exit over time |
+| ⚡ **Rust Bot** | High-performance async scanner (Binance + Bybit) |
+| 📊 **Paper-Trading Simulator** | Replays **real** historical prices, no API keys, no money |
+| 📈 **Backtester** | Measures Sharpe, Sortino, Calmar, drawdown, win rate |
+| 🖥️ **Live Dashboard** | Colour terminal dashboard for real bot monitoring |
+
+---
+
+## 🚀 Paper-Trading Simulator — Test Without Any Money
+
+The simulator fetches **real** historical OHLCV data from Binance's public API (no API key required) and creates a realistic multi-exchange environment with synthetic bid/ask spreads.  You get:
+
+- ✅ Real price levels (BTC, ETH, SOL — whatever you pick)
+- ✅ Simulated per-exchange spread noise (AR(1) correlated, realistic)
+- ✅ Virtual portfolio with P&L tracking
+- ✅ Rich colour terminal report
+- ✅ Interactive HTML report with charts (opens in any browser)
+- ✅ Zero setup — just install requirements and run
+
+### Run a simulation instantly
+
+```bash
+cd python
+pip install -r requirements.txt
+
+# Default: BTC/USDT, 500 hourly candles, $10 000 starting balance
+python -m simulator.run
+
+# Customise the symbol, timeframe and balance
+python -m simulator.run --symbol ETH/USDT --candles 720 --balance 5000
+python -m simulator.run --symbol SOL/USDT --timeframe 15m --candles 1000
+
+# Save the HTML report to a specific file
+python -m simulator.run --symbol BTC/USDT --output btc_sim.html
+```
+
+**All options:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--symbol` | `BTC/USDT` | Any coin pair (e.g. ETH/USDT, SOL/USDT, XRP/USDT) |
+| `--timeframe` | `1h` | Candle size: `1m` `5m` `15m` `1h` `4h` `1d` |
+| `--candles` | `500` | How many historical bars to replay (max 1000) |
+| `--balance` | `10000` | Starting virtual USDT balance |
+| `--strategy` | `all` | `cross_exchange` / `ai_spread` / `all` |
+| `--exchanges` | `3` | Number of simulated exchanges |
+| `--min-profit` | `0.15` | Minimum spread % to trigger a paper trade |
+| `--fee` | `0.001` | Taker fee per leg (0.001 = 0.1%) |
+| `--output` | `simulation_report.html` | HTML report output path |
+| `--no-html` | — | Skip HTML report |
+
+---
+
+## 📈 Backtester
+
+Compare strategy performance side-by-side with full risk metrics:
+
+```bash
+cd python
+
+# Backtest all strategies on BTC/USDT
+python -m backtest.backtest --symbol BTC/USDT --candles 1000
+
+# Compare cross_exchange vs ai_spread side by side
+python -m backtest.backtest --symbol ETH/USDT --compare
+
+# Customise timeframe and starting balance
+python -m backtest.backtest --symbol SOL/USDT --timeframe 4h --balance 50000
+```
+
+**Metrics reported:**
+- Total & annualised return
+- Sharpe ratio, Sortino ratio, Calmar ratio
+- Max drawdown
+- Win rate & profit factor
+- Average trade P&L and duration
+
+---
+
+## 🖥️ Live Terminal Dashboard
+
+Attach a colour dashboard to any running bot:
+
+```python
+from dashboard.terminal import LiveDashboard
+
+dash = LiveDashboard(symbols=["BTC/USDT", "ETH/USDT"], bot_name="My Arb Bot")
+dash.set_initial_balance(10_000.0)
+dash.start()
+
+# In your bot loop:
+dash.update_price("binance", "BTC/USDT", 65000.0)
+dash.update_price("kraken",  "BTC/USDT", 65120.0)
+dash.add_opportunity("BTC/USDT", "binance", "kraken", 65000, 65120, 0.18)
+dash.update_balance(10_023.50)
+dash.add_trade("BTC/USDT", "binance", "kraken", 65000, 65120, 1.20)
+```
+
+The dashboard renders live prices, detected opportunities, trade history, and P&L — all updating in real time in your terminal.
 
 ---
 
@@ -50,8 +159,18 @@ Abritage-Bots/
 │   │   └── bot.py                   # Cross-exchange arbitrage bot
 │   ├── triangular_arb/
 │   │   └── bot.py                   # Triangular arbitrage bot
-│   └── ai_arb/
-│       └── bot.py                   # AI/ML arbitrage bot (spread predictor + RL)
+│   ├── ai_arb/
+│   │   └── bot.py                   # AI/ML arbitrage bot (spread predictor + RL)
+│   ├── simulator/                   # ★ Paper-trading simulator (no API keys needed)
+│   │   ├── market_data.py           #   Real OHLCV fetcher + multi-exchange spread synthesiser
+│   │   ├── portfolio.py             #   Virtual portfolio — balance, positions, P&L
+│   │   ├── engine.py                #   Core simulation engine
+│   │   ├── report.py                #   Rich terminal + HTML report generator
+│   │   └── run.py                   #   CLI entry point
+│   ├── backtest/                    # ★ Historical strategy backtester
+│   │   └── backtest.py              #   Sharpe, Sortino, Calmar, drawdown, win rate
+│   └── dashboard/                   # ★ Live terminal dashboard
+│       └── terminal.py              #   Rich colour live display for real bot runs
 └── rust/
     ├── Cargo.toml
     └── src/
