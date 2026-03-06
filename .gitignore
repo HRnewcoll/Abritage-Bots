@@ -11,6 +11,8 @@ __pycache__/
 dist/
 build/
 .eggs/
+python/.venv/
+python/venv/
 .venv/
 venv/
 env/
@@ -20,6 +22,11 @@ python/models/
 
 # Logs
 *.log
+
+# Simulation HTML reports generated at runtime
+simulation_report.html
+*_report.html
+*_sim.html
 
 # Rust build artifacts
 rust/target/
@@ -33,5 +40,5 @@ rust/target/
 # macOS
 .DS_Store
 
-# dotenv
+# dotenv — NEVER commit .env with real keys
 .env

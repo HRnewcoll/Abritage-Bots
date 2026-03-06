@@ -1,8 +1,45 @@
-# Abritage-Bots 🤖💹
+# Arbitrage Bots 🤖💹
 
 A collection of **cryptocurrency arbitrage bots** written in **Python** and **Rust**, including two **AI/ML-powered** strategies — plus a full **paper-trading simulator** that uses real historical market prices so you can test everything without spending a single dollar.
 
 > ⚠️ **All bots run in `dry_run: true` mode by default — no real orders are placed until you explicitly disable it and provide live API credentials.**
+
+---
+
+## ⚡ 30-Second Quick Start
+
+**No API keys needed to try the simulator!**
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/HRnewcoll/Arbitrage-Bots.git
+cd Arbitrage-Bots
+
+# 2. One-command setup (creates venv, installs deps, copies config)
+./setup.sh          # Linux / macOS
+setup.bat           # Windows (double-click or run in Command Prompt)
+
+# 3. Activate the environment and launch the interactive menu
+source python/.venv/bin/activate   # Linux/macOS
+python\.venv\Scripts\activate      # Windows (in Command Prompt)
+
+python arb.py
+```
+
+The launcher opens a numbered menu — type `1` and press Enter to run a full
+paper-trading simulation on real BTC/USDT price history. No config required.
+
+### Direct shortcuts (bypass the menu)
+
+```bash
+python arb.py simulate          # paper-trading sim  — no API keys needed
+python arb.py backtest          # strategy backtest  — no API keys needed
+python arb.py wizard            # interactive API key & settings wizard
+python arb.py bot cross         # run cross-exchange bot (needs config)
+python arb.py bot tri           # run triangular bot (needs config)
+python arb.py bot ai            # run AI bot (needs config)
+python arb.py help              # show all commands
+```
 
 ---
 
@@ -148,11 +185,16 @@ The Rust bot currently supports **Binance** and **Bybit** directly (testnet-read
 ## Repository Structure
 
 ```
-Abritage-Bots/
+Arbitrage-Bots/
+├── arb.py                            # ★ Unified interactive launcher — start here!
+├── setup.sh                          # ★ One-command setup (Linux/macOS)
+├── setup.bat                         # ★ One-command setup (Windows)
+├── .env.example                      # Environment-variable API key template
 ├── python/
 │   ├── requirements.txt              # Python dependencies
+│   ├── setup_wizard.py               # ★ Interactive config wizard
 │   ├── config/
-│   │   └── config.example.yaml      # Copy → config.yaml, fill in your keys
+│   │   └── config.example.yaml      # Config template (copy → config.yaml)
 │   ├── utils/
 │   │   └── exchange.py              # Shared ccxt helpers
 │   ├── cross_exchange_arb/
@@ -182,7 +224,7 @@ Abritage-Bots/
 
 ---
 
-## Quick Start (Python)
+## Quick Start (Python — manual, without setup.sh)
 
 ### 1. Install dependencies
 
@@ -194,6 +236,10 @@ pip install -r requirements.txt
 ### 2. Configure
 
 ```bash
+# Option A — Interactive wizard (recommended)
+python setup_wizard.py
+
+# Option B — Copy and edit manually
 cp config/config.example.yaml config/config.yaml
 # Edit config/config.yaml and add your exchange API keys.
 # Leave  sandbox: true  and  dry_run: true  until you are confident.
@@ -202,6 +248,13 @@ cp config/config.example.yaml config/config.yaml
 ### 3. Run a bot
 
 ```bash
+# Use the interactive menu (easiest)
+cd ..         # back to repo root
+python arb.py
+
+# Or run directly with module paths:
+cd python
+
 # Cross-exchange arbitrage
 python -m cross_exchange_arb.bot --config config/config.yaml
 
