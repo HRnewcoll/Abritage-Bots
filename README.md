@@ -41,6 +41,36 @@ python arb.py bot ai            # run AI bot (needs config)
 python arb.py help              # show all commands
 ```
 
+### If you have `make`
+
+```bash
+make setup          # setup (same as ./setup.sh)
+make simulate       # run simulator
+make backtest       # run backtester
+make test           # run 74-test suite (no API keys needed)
+make wizard         # run config wizard
+make docker-up      # run everything in Docker (no local Python needed)
+```
+
+---
+
+## 🐳 Docker Quick Start (no Python install required)
+
+```bash
+# Build and run the simulator in one command:
+docker-compose up
+
+# Or with Docker directly:
+docker build -t arb-bots .
+docker run --rm -it arb-bots simulate
+docker run --rm -it arb-bots backtest
+
+# Mount your config for live bot trading:
+docker run --rm -it \
+  -v $(pwd)/python/config:/app/python/config:ro \
+  arb-bots bot-cross
+```
+
 ---
 
 ## ✨ What's Inside
@@ -189,6 +219,10 @@ Arbitrage-Bots/
 ├── arb.py                            # ★ Unified interactive launcher — start here!
 ├── setup.sh                          # ★ One-command setup (Linux/macOS)
 ├── setup.bat                         # ★ One-command setup (Windows)
+├── Makefile                          # ★ Shorthand for every common task
+├── Dockerfile                        # ★ Container image definition
+├── docker-compose.yml                # ★ Multi-service container orchestration
+├── CONTRIBUTING.md                   # ★ How to contribute
 ├── .env.example                      # Environment-variable API key template
 ├── python/
 │   ├── requirements.txt              # Python dependencies
@@ -211,8 +245,12 @@ Arbitrage-Bots/
 │   │   └── run.py                   #   CLI entry point
 │   ├── backtest/                    # ★ Historical strategy backtester
 │   │   └── backtest.py              #   Sharpe, Sortino, Calmar, drawdown, win rate
-│   └── dashboard/                   # ★ Live terminal dashboard
-│       └── terminal.py              #   Rich colour live display for real bot runs
+│   ├── dashboard/                   # ★ Live terminal dashboard
+│   │   └── terminal.py              #   Rich colour live display for real bot runs
+│   └── tests/                       # ★ 74-test pytest suite (no API keys needed)
+│       ├── test_portfolio.py        #   Portfolio, trade lifecycle, analytics
+│       ├── test_market_data.py      #   Market simulator, Candle, SimOrderBook
+│       └── test_engine.py           #   Simulation engine, strategy detectors
 └── rust/
     ├── Cargo.toml
     └── src/
@@ -269,6 +307,21 @@ python -m ai_arb.bot --config config/config.yaml --strategy spread
 
 # AI bot — RL agent only
 python -m ai_arb.bot --config config/config.yaml --strategy rl
+```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Fastest way (uses make)
+make test
+
+# Or manually:
+cd python
+python -m pytest tests/ -v
+
+# No network or API keys needed — all tests use synthetic data.
 ```
 
 ---

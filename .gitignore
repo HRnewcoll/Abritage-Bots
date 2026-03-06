@@ -17,6 +17,11 @@ python/venv/
 venv/
 env/
 
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Trained models (can be large)
 python/models/
 
@@ -30,6 +35,9 @@ simulation_report.html
 
 # Rust build artifacts
 rust/target/
+
+# Docker
+reports/
 
 # IDE
 .vscode/
