@@ -47,7 +47,8 @@ python arb.py help              # show all commands
 make setup          # setup (same as ./setup.sh)
 make simulate       # run simulator
 make backtest       # run backtester
-make test           # run 74-test suite (no API keys needed)
+make bot-nn         # run neural-network bot (LSTM + DQN, no API keys)
+make test           # run 123-test suite (no API keys needed)
 make wizard         # run config wizard
 make docker-up      # run everything in Docker (no local Python needed)
 ```
@@ -81,6 +82,8 @@ docker run --rm -it \
 | 🔺 **Triangular Arb Bot** | Exploits 3-currency cycles on a single exchange |
 | 🤖 **AI Spread Predictor** | Gradient Boosting model predicts the next price spread |
 | 🧠 **AI RL Agent** | Q-learning agent that learns optimal entry/exit over time |
+| 🔬 **LSTM Neural Network** | Pure-NumPy LSTM predicts next spread via BPTT — no frameworks |
+| 🎮 **DQN Neural Network** | Deep Q-Network RL agent learns trading policy from experience |
 | ⚡ **Rust Bot** | High-performance async scanner (Binance + Bybit) |
 | 📊 **Paper-Trading Simulator** | Replays **real** historical prices, no API keys, no money |
 | 📈 **Backtester** | Measures Sharpe, Sortino, Calmar, drawdown, win rate |
@@ -190,6 +193,8 @@ The dashboard renders live prices, detected opportunities, trade history, and P&
 | Triangular Arbitrage | Python | 3-currency circular trade on a single exchange | `python/triangular_arb/bot.py` |
 | **AI Spread Predictor** | **Python** | **ML (Gradient Boosting) predicts next spread** | `python/ai_arb/bot.py` |
 | **AI RL Trading Agent** | **Python** | **Q-learning agent learns optimal entry/exit** | `python/ai_arb/bot.py` |
+| 🔬 **LSTM NN Predictor** | **Python** | **Pure-NumPy LSTM predicts next spread (BPTT)** | `python/nn_arb/bot.py` |
+| 🎮 **DQN RL Agent** | **Python** | **Deep Q-Network learns policy from experience** | `python/nn_arb/bot.py` |
 | Cross-Exchange Arbitrage | Rust | Fast async order-book scanner (Binance + Bybit) | `rust/src/main.rs` |
 
 ---
@@ -237,6 +242,11 @@ Arbitrage-Bots/
 │   │   └── bot.py                   # Triangular arbitrage bot
 │   ├── ai_arb/
 │   │   └── bot.py                   # AI/ML arbitrage bot (spread predictor + RL)
+│   ├── nn_arb/                      # ★ Neural-network bots (LSTM + DQN) — no API keys
+│   │   ├── neural_net.py            #   Pure-NumPy MLP + LSTM with full BPTT
+│   │   ├── dqn_agent.py             #   Deep Q-Network agent (experience replay)
+│   │   ├── lstm_predictor.py        #   LSTM spread predictor with feature engineering
+│   │   └── bot.py                   #   Simulation runner CLI
 │   ├── simulator/                   # ★ Paper-trading simulator (no API keys needed)
 │   │   ├── market_data.py           #   Real OHLCV fetcher + multi-exchange spread synthesiser
 │   │   ├── portfolio.py             #   Virtual portfolio — balance, positions, P&L
@@ -247,10 +257,11 @@ Arbitrage-Bots/
 │   │   └── backtest.py              #   Sharpe, Sortino, Calmar, drawdown, win rate
 │   ├── dashboard/                   # ★ Live terminal dashboard
 │   │   └── terminal.py              #   Rich colour live display for real bot runs
-│   └── tests/                       # ★ 74-test pytest suite (no API keys needed)
+│   └── tests/                       # ★ 123-test pytest suite (no API keys needed)
 │       ├── test_portfolio.py        #   Portfolio, trade lifecycle, analytics
 │       ├── test_market_data.py      #   Market simulator, Candle, SimOrderBook
-│       └── test_engine.py           #   Simulation engine, strategy detectors
+│       ├── test_engine.py           #   Simulation engine, strategy detectors
+│       └── test_nn_arb.py           #   NN components: MLP, LSTM, DQN, BPTT
 └── rust/
     ├── Cargo.toml
     └── src/
@@ -321,7 +332,10 @@ make test
 cd python
 python -m pytest tests/ -v
 
-# No network or API keys needed — all tests use synthetic data.
+# Run just the neural-network tests:
+python -m pytest tests/test_nn_arb.py -v
+
+# No network or API keys needed — all 123 tests use synthetic data.
 ```
 
 ---
@@ -385,6 +399,64 @@ Calculates the net rate product after fees. Trades when profit > threshold.
 - Uses **tabular Q-learning** (ε-greedy) with actions: Hold / Open / Close.
 - Trains through simulated episodes on historical spread data.
 - Q-table persisted to `python/models/rl_q_table.pkl` — grows smarter over time.
+
+---
+
+## 🔬 Neural-Network Bots (LSTM + DQN)
+
+Two genuine deep learning bots built **entirely in NumPy** — no PyTorch,
+TensorFlow, or any ML framework needed.  They work offline in simulation mode
+using real Binance OHLCV prices (no API keys).
+
+```bash
+# Interactive menu (option 3):
+python arb.py
+
+# Direct command:
+python -m nn_arb.bot                    # LSTM + DQN, BTC/USDT, 500 candles
+python -m nn_arb.bot --strategy lstm    # LSTM predictor only
+python -m nn_arb.bot --strategy dqn     # DQN agent only
+python -m nn_arb.bot --symbol ETH/USDT --candles 1000 --balance 50000
+python -m nn_arb.bot --load             # load previously saved model weights
+
+# Or with make:
+make bot-nn
+```
+
+### 🔮 LSTM Spread Predictor
+
+A single-layer **Long Short-Term Memory** network predicts the *next* inter-exchange spread (%) from a sliding window of 6 features per timestep:
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 0 | `spread_pct`     | Current best inter-exchange spread (%) |
+| 1 | `spread_delta`   | Change in spread vs previous timestep |
+| 2 | `mid_norm`       | Mid-price normalised by rolling mean |
+| 3 | `vol_imbalance`  | Signed volume ratio between best books |
+| 4 | `rsi_scaled`     | RSI(14), scaled to (−0.5, 0.5) |
+| 5 | `spread_ma_ratio`| Spread vs its 20-step moving average |
+
+**Training:** Full Backpropagation Through Time (BPTT) with gradient clipping + Adam optimiser.  Trains online as data arrives — no pre-training required.
+
+### 🎮 Deep Q-Network (DQN) Agent
+
+A **2-hidden-layer MLP** approximates the Q-function *Q(state, action)* to learn an optimal arbitrage policy by trial and error:
+
+**State (8 features):** spread %, spread MA, mid-price change, volume imbalance, RSI, position flag, steps held, unrealised P&L.
+
+**Actions:** `HOLD` (0) · `ENTER` (1) · `EXIT` (2)
+
+**Reward:** realised P&L after fees when exiting; small penalties for holding and invalid actions.
+
+**Training:** Experience replay (ring buffer, batch size 64) + target network updated every 200 steps + ε-greedy exploration decaying 1.0 → 0.05.
+
+### Implementation highlights
+
+- Zero heavy dependencies — pure NumPy matrix operations.
+- LSTM: forget/input/gate/output gates with Adam-optimised weights.
+- DQN: He-initialised MLP, target-network stabilisation, gradient clipping.
+- Models auto-saved to `python/models/` as `.npz` files; reload with `--load`.
+- 49 unit tests cover forward-pass shapes, BPTT convergence, DQN training.
 
 ---
 

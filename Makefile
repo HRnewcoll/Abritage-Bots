@@ -31,7 +31,8 @@ help:
 	@echo "  Bots (require config.yaml with API keys)"
 	@echo "    make bot-cross      Run cross-exchange arbitrage bot"
 	@echo "    make bot-tri        Run triangular arbitrage bot"
-	@echo "    make bot-ai         Run AI arbitrage bot"
+	@echo "    make bot-ai         Run AI arbitrage bot (GB + Q-table RL)"
+	@echo "    make bot-nn         Run Neural-Network Bot (LSTM + DQN) — no API keys needed"
 	@echo ""
 	@echo "  Quality"
 	@echo "    make test           Run the test suite"
@@ -82,6 +83,10 @@ bot-tri:
 .PHONY: bot-ai
 bot-ai:
 	cd $(PYTHON_DIR) && $(PYTHON) -m ai_arb.bot --config config/config.yaml --strategy both
+
+.PHONY: bot-nn
+bot-nn:
+	cd $(PYTHON_DIR) && $(PYTHON) -m nn_arb.bot
 
 # ── Quality ──────────────────────────────────────────────────────────────────
 .PHONY: test

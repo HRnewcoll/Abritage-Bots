@@ -57,6 +57,7 @@ Arbitrage-Bots/
 │   ├── cross_exchange_arb/     Cross-exchange arbitrage strategy
 │   ├── triangular_arb/         Triangular arbitrage strategy
 │   ├── ai_arb/                 AI/ML strategies (GB predictor + RL agent)
+│   ├── nn_arb/                 Neural-network bots (LSTM + DQN, pure NumPy)
 │   ├── simulator/              Paper-trading engine + report generator
 │   ├── backtest/               Historical backtester
 │   ├── dashboard/              Live terminal dashboard

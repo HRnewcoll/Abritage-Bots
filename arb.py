@@ -200,7 +200,40 @@ def _run_bot(console, bot_key: str):
         console.print("\n  [yellow]Bot stopped.[/]\n")
 
 
-def _run_setup_wizard(console):
+def _run_nn_bot(console):
+    from rich.prompt import Prompt
+    from rich.panel import Panel
+
+    console.print(Panel(
+        "[bold cyan]🧠  Neural-Network Arbitrage Bot[/]\n"
+        "[dim]LSTM Spread Predictor + Deep Q-Network (DQN) — pure NumPy, no PyTorch needed.\n"
+        "Uses real historical OHLCV prices. No API keys required![/]",
+        border_style="cyan",
+    ))
+
+    symbol    = Prompt.ask("  Trading pair", default="BTC/USDT")
+    timeframe = Prompt.ask("  Timeframe (1m 5m 15m 1h 4h 1d)", default="1h")
+    candles   = Prompt.ask("  Number of candles", default="500")
+    balance   = Prompt.ask("  Starting virtual balance (USDT)", default="10000")
+    strategy  = Prompt.ask("  Strategy (lstm / dqn / both)", default="both")
+    save_dir  = Prompt.ask("  Save model weights to directory", default="models")
+
+    cmd = [
+        sys.executable, "-m", "nn_arb.bot",
+        "--symbol",    symbol,
+        "--timeframe", timeframe,
+        "--candles",   candles,
+        "--balance",   balance,
+        "--strategy",  strategy,
+        "--save-dir",  save_dir,
+    ]
+    console.print()
+    console.print(f"  [dim]Running:[/] [cyan]{' '.join(cmd)}[/]\n")
+    subprocess.run(cmd, cwd=str(PYTHON_DIR))
+    console.print()
+
+
+
     """Import and run the interactive setup wizard."""
     try:
         import setup_wizard
@@ -229,11 +262,13 @@ def _show_help(console):
         ("python arb.py",                         "Open this interactive menu"),
         ("python arb.py simulate",                "Run simulator directly (skips menu)"),
         ("python arb.py backtest",                "Run backtester directly"),
+        ("python arb.py nn",                      "Run Neural-Network Bot (LSTM+DQN)"),
         ("python arb.py bot cross",               "Run cross-exchange bot"),
         ("python arb.py bot tri",                 "Run triangular bot"),
-        ("python arb.py bot ai",                  "Run AI bot"),
+        ("python arb.py bot ai",                  "Run AI bot (GB+RL)"),
         ("python arb.py wizard",                  "Run setup wizard"),
         ("./setup.sh  (setup.bat on Windows)",    "One-command environment setup"),
+        ("python -m nn_arb.bot --help",           "All NN bot CLI options"),
         ("python -m simulator.run --help",         "All simulator CLI options"),
         ("python -m backtest.backtest --help",     "All backtest CLI options"),
     ]
@@ -262,6 +297,8 @@ def main():
             _run_simulator(console)
         elif cmd == "backtest":
             _run_backtest(console)
+        elif cmd == "nn":
+            _run_nn_bot(console)
         elif cmd == "bot" and len(args) >= 2:
             _run_bot(console, args[1].lower())
         elif cmd == "wizard":
@@ -278,11 +315,12 @@ def main():
     CHOICES = [
         ("1", "📊  Run Paper-Trading Simulator    [green](no API keys needed)[/]"),
         ("2", "📈  Run Backtester                 [green](no API keys needed)[/]"),
-        ("3", "🔄  Run Cross-Exchange Bot         [yellow](needs API keys + config)[/]"),
-        ("4", "🔺  Run Triangular Arbitrage Bot   [yellow](needs API keys + config)[/]"),
-        ("5", "🧠  Run AI Arbitrage Bot           [yellow](needs API keys + config)[/]"),
-        ("6", "⚙️   Setup Wizard                  [cyan](configure API keys)[/]"),
-        ("7", "❓  Help & quick-reference"),
+        ("3", "🧠  Run Neural-Network Bot (LSTM+DQN) [green](no API keys needed)[/]"),
+        ("4", "🔄  Run Cross-Exchange Bot         [yellow](needs API keys + config)[/]"),
+        ("5", "🔺  Run Triangular Arbitrage Bot   [yellow](needs API keys + config)[/]"),
+        ("6", "🤖  Run AI Arbitrage Bot (GB+RL)   [yellow](needs API keys + config)[/]"),
+        ("7", "⚙️   Setup Wizard                  [cyan](configure API keys)[/]"),
+        ("8", "❓  Help & quick-reference"),
         ("0", "🚪  Exit"),
     ]
 
@@ -294,11 +332,12 @@ def main():
 
         if   choice == "1": _run_simulator(console)
         elif choice == "2": _run_backtest(console)
-        elif choice == "3": _run_bot(console, "cross")
-        elif choice == "4": _run_bot(console, "tri")
-        elif choice == "5": _run_bot(console, "ai")
-        elif choice == "6": _run_setup_wizard(console)
-        elif choice == "7": _show_help(console)
+        elif choice == "3": _run_nn_bot(console)
+        elif choice == "4": _run_bot(console, "cross")
+        elif choice == "5": _run_bot(console, "tri")
+        elif choice == "6": _run_bot(console, "ai")
+        elif choice == "7": _run_setup_wizard(console)
+        elif choice == "8": _show_help(console)
         elif choice == "0":
             console.print("\n  Bye! 👋\n")
             sys.exit(0)
