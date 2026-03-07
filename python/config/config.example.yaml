@@ -1,0 +1,94 @@
+# Example configuration file — copy to config.yaml and fill in your values.
+# Never commit config.yaml with real API keys!
+
+exchanges:
+  binance:
+    api_key: "YOUR_BINANCE_API_KEY"
+    api_secret: "YOUR_BINANCE_API_SECRET"
+    # Set to true to use Binance Testnet
+    sandbox: true
+
+  kraken:
+    api_key: "YOUR_KRAKEN_API_KEY"
+    api_secret: "YOUR_KRAKEN_API_SECRET"
+    sandbox: true
+
+  coinbase:
+    api_key: "YOUR_COINBASE_API_KEY"
+    api_secret: "YOUR_COINBASE_API_SECRET"
+    sandbox: true
+
+  bybit:
+    api_key: "YOUR_BYBIT_API_KEY"
+    api_secret: "YOUR_BYBIT_API_SECRET"
+    sandbox: true
+
+  kucoin:
+    api_key: "YOUR_KUCOIN_API_KEY"
+    api_secret: "YOUR_KUCOIN_API_SECRET"
+    passphrase: "YOUR_KUCOIN_PASSPHRASE"
+    sandbox: true
+
+  okx:
+    api_key: "YOUR_OKX_API_KEY"
+    api_secret: "YOUR_OKX_API_SECRET"
+    passphrase: "YOUR_OKX_PASSPHRASE"
+    sandbox: true
+
+arbitrage:
+  # Pairs to monitor for cross-exchange opportunities
+  symbols:
+    - "BTC/USDT"
+    - "ETH/USDT"
+    - "SOL/USDT"
+    - "BNB/USDT"
+    - "XRP/USDT"
+    - "DOGE/USDT"
+    - "ADA/USDT"
+    - "MATIC/USDT"
+
+  # Minimum profit percentage after fees before placing an order
+  min_profit_pct: 0.5
+
+  # Maximum trade size in USDT
+  max_trade_size_usdt: 100.0
+
+  # Polling interval in seconds
+  poll_interval_seconds: 5
+
+  # Dry-run mode — log opportunities but do NOT place real orders
+  dry_run: true
+
+triangular:
+  # Exchange to run triangular arbitrage on
+  exchange: "binance"
+
+  # Base currency to start/end the triangle with
+  base_currency: "USDT"
+
+  # Minimum profit percentage after fees
+  min_profit_pct: 0.3
+
+  dry_run: true
+
+ai:
+  # How many historical candles to fetch for model training
+  history_candles: 500
+
+  # Lookback window (candles) fed into the model as features
+  feature_window: 20
+
+  # Threshold: model must predict spread >= this value (in %) to open a trade
+  prediction_threshold: 0.4
+
+  # Reinforcement-learning episode length (steps)
+  rl_episode_steps: 200
+
+  # Saved model directory
+  model_dir: "models/"
+
+  dry_run: true
+
+logging:
+  level: "INFO"          # DEBUG | INFO | WARNING | ERROR
+  log_file: "arb_bot.log"

@@ -1,0 +1,82 @@
+# =============================================================================
+#  docker-compose.yml — Arbitrage Bots
+# =============================================================================
+#
+#  Usage:
+#    docker-compose up               # run the simulator (default)
+#    docker-compose run simulator    # paper-trading simulator
+#    docker-compose run backtest     # backtester
+#    docker-compose run bot-cross    # cross-exchange bot (needs config.yaml)
+#    docker-compose run bot-ai       # AI bot (needs config.yaml)
+#
+#  Mount your config:
+#    Place your python/config/config.yaml (with real keys) and the container
+#    will use it automatically — the config/ directory is volume-mounted.
+#
+#  Environment variables:
+#    You can pass API keys via a .env file in the repo root.
+#    See .env.example for the required variable names.
+# =============================================================================
+
+version: "3.9"
+
+# ── Shared build definition ───────────────────────────────────────────────────
+x-common: &common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .env
+  volumes:
+    # Mount your real config and any generated HTML reports
+    - ./python/config:/app/python/config:ro
+    - ./reports:/app/reports
+  environment:
+    - PYTHONUNBUFFERED=1
+
+# ── Services ──────────────────────────────────────────────────────────────────
+services:
+
+  # Default service: paper-trading simulator (no API keys needed)
+  simulator:
+    <<: *common
+    container_name: arb-simulator
+    command: simulate
+    profiles:
+      - default
+      - sim
+
+  # Backtester
+  backtest:
+    <<: *common
+    container_name: arb-backtest
+    command: backtest
+    profiles:
+      - backtest
+
+  # Cross-exchange arbitrage bot
+  bot-cross:
+    <<: *common
+    container_name: arb-cross
+    command: ["bot", "cross"]
+    restart: unless-stopped
+    profiles:
+      - live
+
+  # Triangular arbitrage bot
+  bot-tri:
+    <<: *common
+    container_name: arb-tri
+    command: ["bot", "tri"]
+    restart: unless-stopped
+    profiles:
+      - live
+
+  # AI arbitrage bot
+  bot-ai:
+    <<: *common
+    container_name: arb-ai
+    command: ["bot", "ai"]
+    restart: unless-stopped
+    profiles:
+      - live
